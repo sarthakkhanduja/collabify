@@ -15,6 +15,7 @@ app.use(
     secret: "your-secret-key", // Replace with your own secret key
     resave: false,
     saveUninitialized: false,
+    cookie: { secure: false },
   })
 );
 

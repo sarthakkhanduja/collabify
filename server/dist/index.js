@@ -11,6 +11,7 @@ app.use(session({
     secret: "your-secret-key", // Replace with your own secret key
     resave: false,
     saveUninitialized: false,
+    cookie: { secure: false },
 }));
 // Initialize Passport.js
 app.use(passport.initialize());

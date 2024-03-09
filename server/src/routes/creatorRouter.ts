@@ -9,6 +9,14 @@ interface AuthenticatedRequest extends Request {
   user?: any;
 }
 
+function isLoggedIn(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: () => void
+) {
+  req.user ? next() : res.status(401).json({ message: "Unauthorized" });
+}
+
 router.get("/", (req: Request, res: Response) => {
   res.status(200).json({
     message: "I am a YouTuber",
@@ -34,18 +42,32 @@ router.get(
   }
 );
 
-router.get("/auth/success", (req: AuthenticatedRequest, res: Response) => {
-  console.log(req.user);
-  const userName = req.user.displayName;
-  res.status(200).json({
-    message: `Hi ${userName}`,
-  });
-});
+router.get(
+  "/auth/success",
+  isLoggedIn,
+  (req: AuthenticatedRequest, res: Response) => {
+    // console.log(req.user);
+    const userName = req.user.displayName;
+    res.status(200).json({
+      message: `Hi ${userName}`,
+    });
+  }
+);
 
-router.get("/auth/loginFail", (req: Request, res: Response) => {
+router.get("/auth/loginFail", isLoggedIn, (req: Request, res: Response) => {
   res.status(200).json({
     message: "Login Failed",
   });
 });
+
+router.get(
+  "/random",
+  isLoggedIn,
+  (req: AuthenticatedRequest, res: Response) => {
+    res.status(200).json({
+      message: "This is RANDOM!",
+    });
+  }
+);
 
 module.exports = router;
