@@ -3,9 +3,7 @@ export {};
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
-const GOOGLE_CLIENT_ID =
-  "301470100800-2msf9ge20d6lte3ap4qu4bek6cc5svfu.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
+// I have removed the Clent ID and Client Secret
 
 interface Profile {
   id: string;
