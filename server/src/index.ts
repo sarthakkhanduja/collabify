@@ -25,12 +25,6 @@ app.use(passport.session());
 
 app.use("/api/v1", mainRouter);
 
-// app.get("/auth/google/callback", (req: Request, res: Response) => {
-//   res.status(200).json({
-//     message: "Hey",
-//   });
-// });
-
 app.listen(PORT, (err: String) => {
   if (err) {
     console.log(err);

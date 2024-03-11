@@ -37,7 +37,7 @@ router.get(
     failureRedirect: "/api/v1/creator/auth/loginFail",
   }),
   function (req: Request, res: Response) {
-    // Successful authentication, redirect to home page or dashboard
+    // Successful authentication, redirect to -
     res.redirect("/api/v1/creator/auth/success");
   }
 );
@@ -54,8 +54,8 @@ router.get(
   }
 );
 
-router.get("/auth/loginFail", isLoggedIn, (req: Request, res: Response) => {
-  res.status(200).json({
+router.get("/auth/loginFail", (req: Request, res: Response) => {
+  res.status(401).json({
     message: "Login Failed",
   });
 });
