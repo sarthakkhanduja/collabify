@@ -1,71 +1,122 @@
 export {};
 const express = require("express");
-const passport = require("passport");
 import { Request, Response } from "express";
 require("../auth/auth");
+require("dotenv").config();
+
 const router = express.Router();
+const { google } = require("googleapis");
+const { OAuth2Client } = require("google-auth-library");
 
-interface AuthenticatedRequest extends Request {
-  user?: any;
-}
+router.post("/", async (req: Request, res: Response, next: () => void) => {
+  res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5173");
+  res.header("Referrer-Policy", "no-referrer-when-downgrade");
 
-function isLoggedIn(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: () => void
-) {
-  req.user ? next() : res.status(401).json({ message: "Unauthorized" });
-}
+  const redirectUrl =
+    "http://localhost:3001/api/v1/creator/auth/google/callback";
 
-router.get("/", (req: Request, res: Response) => {
-  res.status(200).json({
-    message: "I am a YouTuber",
+  // console.log("ID: ", process.env.GOOGLE_CLIENT_ID);
+  // console.log("Secret: ", process.env.GOOGLE_CLIENT_SECRET);
+
+  const oAuth2Client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectUrl
+  );
+
+  const authorizeUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope:
+      "https://www.googleapis.com/auth/userinfo.profile openid email https://www.googleapis.com/auth/youtube.readonly",
+    prompt: "consent",
+  });
+
+  console.log("Auth URL: ", authorizeUrl);
+
+  res.json({
+    url: authorizeUrl,
   });
 });
 
-router.get(
-  "/auth/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })
-);
-
-// Handle callback from Google OAuth2 authentication
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/api/v1/creator/auth/loginFail",
-  }),
-  function (req: Request, res: Response) {
-    // Successful authentication, redirect to -
-    res.redirect("/api/v1/creator/auth/success");
-  }
-);
+  async (req: Request, res: Response, next: () => void) => {
+    // Authorization code received in the query
+    console.log("Request: ", req.query.code);
 
-router.get(
-  "/auth/success",
-  isLoggedIn,
-  (req: AuthenticatedRequest, res: Response) => {
-    // console.log(req.user);
-    const userName = req.user.displayName;
-    res.status(200).json({
-      message: `Hi ${userName}`,
+    const authCode = req.query.code;
+
+    // Create the oAuth2.0 Client once again
+    const redirectUrl =
+      "http://localhost:3001/api/v1/creator/auth/google/callback";
+
+    const oAuth2Client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectUrl
+    );
+
+    // Exchange authCode for tokens
+    const { tokens } = await oAuth2Client.getToken(authCode);
+
+    // Set access to make requests to API
+    await oAuth2Client.setCredentials(tokens);
+
+    const userCreds = oAuth2Client.credentials;
+
+    // Till here the whole Google Authentication Flow was done
+    // Now we will use these tokens to access the APIs
+
+    // Create People API client
+    const people = google.people({
+      version: "v1",
+      auth: oAuth2Client, // Use OAuth2 client for authorization
     });
-  }
-);
 
-router.get("/auth/loginFail", (req: Request, res: Response) => {
-  res.status(401).json({
-    message: "Login Failed",
-  });
-});
+    // Fetch user data from People API
+    const userProfile = await people.people.get({
+      resourceName: "people/me",
+      personFields: "names,emailAddresses,photos",
+    });
 
-router.get(
-  "/random",
-  isLoggedIn,
-  (req: AuthenticatedRequest, res: Response) => {
-    res.status(200).json({
-      message: "This is RANDOM!",
+    // Extract user data from the response
+    const name = userProfile.data.names?.[0].displayName;
+    const email = userProfile.data.emailAddresses?.[0].value;
+    const profilePicture = userProfile.data.photos?.[0].url;
+
+    console.log("User Profile:", userProfile);
+    console.log("Name: ", name);
+    console.log("Email: ", email);
+    console.log("Profile Picture: ", profilePicture);
+
+    // Now we will do YouTube API
+    // Create YouTube Data API client
+    const youtube = google.youtube({
+      version: "v3",
+      auth: oAuth2Client, // Use OAuth2 client for authorization
+    });
+
+    // Fetch channel data from YouTube Data API
+    const channelData = await youtube.channels.list({
+      part: "snippet",
+      mine: true,
+    });
+
+    // Extract channel data from the response
+    const channelName = channelData.data.items[0].snippet.title;
+    const channelId = channelData.data.items[0].id;
+
+    console.log("Channel Name: ", channelName);
+    console.log("Channel ID: ", channelId);
+
+    res.json({
+      message: "tokens acquired",
+      access_token: userCreds.access_token,
+      name: name,
+      email: email,
+      profilePicture: profilePicture,
+      channelName,
+      channelId,
     });
   }
 );
