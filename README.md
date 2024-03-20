@@ -18,3 +18,4 @@ The YouTube Collaboration Platform is a web application that facilitates collabo
 - React
 - TypeScript
 - Tailwind CSS
+- Prisma ORM
