@@ -1,19 +1,14 @@
-function navigate(url: string) {
-  window.location.href = url;
-}
-
-async function auth() {
-  const response = await fetch('http://localhost:3001/api/v1/creator', { method: 'post' });
-
-  const data = await response.json();
-  console.log(data);
-  navigate(data.url);
-}
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import SignUp from './components/SignUp';
 
 function App() {
   return (
     <div>
-      <button onClick={() => auth()}>Login with Google</button>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<SignUp />} />
+        </Routes>
+      </HashRouter>
     </div>
   )
 }
