@@ -1,5 +1,8 @@
-import logoImg from "../assets/logo-no-bg.png";
+import Carousel from "./Carousel";
+
 import travelImg from "../assets/travel-illustration.png";
+import contentCreatorImg from "../assets/content-creator-illustration.png";
+import collaborateImg from "../assets/collaborate-illustration.png";
 
 function navigate(url: string) {
     window.location.href = url;
@@ -13,12 +16,20 @@ async function auth() {
     navigate(data.url);
 }
 
+const imgSlides = [
+    travelImg,
+    contentCreatorImg,
+    collaborateImg
+  ]
+
 function SignUp() {
-  return (
-    
+  return (    
     <div className="w-full h-screen p-4 sm:p-8 dark:bg-gray-800 flex flex-col items-center">
-        <div className="h-1/2 sm:h-3/5 flex items-center justify-center">
+        {/* <div className="h-1/2 sm:h-3/5 flex items-center justify-center">
             <img src={travelImg} />
+        </div> */}
+        <div className="h-1/2 sm:h-3/5 flex items-center justify-center">
+            <Carousel slides={imgSlides}/>
         </div>
         <h4 className="mt-8 sm:mt-16 text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white text-center">Collaborate Confidently!</h4>
         <h5 className="mt-8 text-xl sm:text-2xl font-medium text-gray-900 dark:text-white text-center">Use <span className=" text-yellow-300">Collabify</span> to connect with contributors, even on the go</h5>
