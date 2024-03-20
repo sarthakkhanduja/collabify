@@ -55,12 +55,13 @@ export default function Carousel({ slides }: CarouselProp) {
 }
 
     return(
-    <div className="overflow-hidden bg-gray-800 w-full h-full" onTouchEnd={onTouchEnd}>
+    <div className="overflow-hidden w-full h-full" onTouchEnd={onTouchEnd}>
         <div className={`flex justify-center items-center transition ease-out duration-300 h-4/5`} >
             {slides.map((slide: string, index: number) => {
                 return <img key={index} src={slide} className={`${index === currentImg ? 'block' : 'hidden'} object-fit w-128 h-128`} onTouchStart={onTouchStart} onTouchMove={onTouchMove}/>
             })}    
         </div>
+        
         <div className="flex mt-2 w-full justify-center items-center text-white gap-4">
             {slides.map((slide: string, index: number) => {
                 return <button 
