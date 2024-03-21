@@ -44,6 +44,13 @@ router.get(
     // Authorization code received in the query
     console.log("Request: ", req.query.code);
 
+    if (!req.query.code) {
+      return res.status(400).json({
+        message:
+          "User did not grant permissions required to login to Collabify",
+      });
+    }
+
     const authCode = req.query.code;
 
     // Create the oAuth2.0 Client once again
@@ -109,7 +116,7 @@ router.get(
     console.log("Channel Name: ", channelName);
     console.log("Channel ID: ", channelId);
 
-    res.json({
+    res.status(200).json({
       message: "tokens acquired",
       access_token: userCreds.access_token,
       name: name,
