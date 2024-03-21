@@ -62,7 +62,7 @@ export default function Carousel({ slides }: CarouselProp) {
             })}    
         </div>
         
-        <div className="flex mt-2 w-full justify-center items-center text-white gap-4">
+        <div className="flex w-full justify-center items-center text-white gap-4">
             {slides.map((slide: string, index: number) => {
                 return <button 
                             key={index} 

@@ -32,7 +32,7 @@ function SignUp() {
         <div className="h-1/2 sm:h-3/5 flex items-center justify-center">
             <Carousel slides={imgSlides}/>
         </div>
-        <h4 className="mt-8 sm:mt-16 text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white text-center">Collaborate 
+        <h4 className="mt-4 font-display sm:mt-16 text-3xl sm:text-4xl font-medium text-gray-900 dark:text-white text-center">Collaborate 
             <span className="">
                 <Typewriter
                     words={[' Confidently!', ' Endlessly!', ' Securely!']}
@@ -51,6 +51,7 @@ function SignUp() {
             <img className="w-5 h-5" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google-logo" />
             <span>Continue with Google</span>
         </button>
+        <h6 className="mt-4 text-xs text-center text-gray-500">By continuing further you agree to our <span className="text-blue-500">terms and conditions</span> and our <span className="text-blue-500">privacy poliicy</span></h6>
     </div>
 
   )
