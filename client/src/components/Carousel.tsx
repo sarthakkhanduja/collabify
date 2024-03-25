@@ -49,7 +49,7 @@ export default function Carousel({ slides }: CarouselProp) {
         handleLeftSwipe();
     } else if(isRightSwipe) {
         handleRightSwipe();
-    }
+    } 
     setTouchStart(null); // Reset touchStart and touchEnd
     setTouchEnd(null);
 }
