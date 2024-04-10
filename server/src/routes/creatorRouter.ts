@@ -109,21 +109,33 @@ router.get(
       mine: true,
     });
 
+    console.log(channelData);
+
     // Extract channel data from the response
-    const channelName = channelData.data.items[0].snippet.title;
-    const channelId = channelData.data.items[0].id;
+    if (channelData.hasOwnProperty("items")) {
+      const channelName = channelData.data.items[0].snippet.title;
+      const channelId = channelData.data.items[0].id;
 
-    console.log("Channel Name: ", channelName);
-    console.log("Channel ID: ", channelId);
+      console.log("Channel Name: ", channelName);
+      console.log("Channel ID: ", channelId);
 
-    res.status(200).json({
+      return res.status(200).json({
+        message: "tokens acquired",
+        access_token: userCreds.access_token,
+        name: name,
+        email: email,
+        profilePicture: profilePicture,
+        channelName,
+        channelId,
+      });
+    }
+
+    return res.status(200).json({
       message: "tokens acquired",
       access_token: userCreds.access_token,
       name: name,
       email: email,
       profilePicture: profilePicture,
-      channelName,
-      channelId,
     });
   }
 );
