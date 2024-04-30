@@ -1,9 +1,11 @@
-import { AiFillHome } from "react-icons/ai";
+import { GoHome } from "react-icons/go";
 import { PiHandshakeFill } from "react-icons/pi";
-import { FaUser } from "react-icons/fa";
-import { ImSearch } from "react-icons/im";
+import { FaRegUser } from "react-icons/fa";
+import { IoIosSearch } from "react-icons/io";
+import plus from "../assets/plusSign.svg";
 import profilePicture from '../assets/sample-profile-picture.jpg';
 import { useState } from "react";
+import axios from 'axios';
 
 
 function Home() {
@@ -11,6 +13,12 @@ function Home() {
     const [searchClicked, setSearchClicked] = useState(false);
     const [collabClicked, setCollabClicked] = useState(false);
     const [profileClicked, setProfileClicked] = useState(false);
+
+
+    async function getName() {
+        const res = await axios.get("http://localhost:3001/getName");
+
+    }
 
     return(
         <div className="flex flex-col bg-[#10100E] h-screen justify-center items-center p-4">
@@ -24,6 +32,13 @@ function Home() {
                         <p className="text-xl font-semibold text-[#D9D9D9]">Sarthak Khanduja</p>
                     </div>                    
                 </div>
+                <div className="w-full p-2 flex flex-row justify-around items-center mt-4">
+                    <div className="h-24 rounded-xl w-full bg-gray-800 flex flex-col cursor-pointer justify-center items-center">
+                        <img className="size-14" src={plus} alt="Add Project" />
+                        <p className="text-sm text-gray-200">New Collab</p>
+                    </div>
+                    
+                </div>
             </div>
             <div className="h-[7%] p-2 w-[90%] absolute bottom-8 bg-gray-800 rounded-3xl z-10 flex flex-row justify-center opacity-70">
                 <div className={`h-full w-1/4 flex justify-center rounded-3xl items-center ${homeClicked === false ? '' : 'bg-[#fff458]'}`} onClick={() => {
@@ -32,7 +47,7 @@ function Home() {
                     setCollabClicked(false);
                     setProfileClicked(false);
                 }}>
-                    <AiFillHome className={`size-7 ${homeClicked === false ? 'text-white' : 'text-black'}`}/>
+                    <GoHome className={`size-7 ${homeClicked === false ? 'text-white' : 'text-black'}`}/>
                 </div>
                 <div className={`h-full w-1/4 flex justify-center rounded-3xl items-center ${searchClicked === false ? '' : 'bg-[#fff458]'}`} onClick={() => {
                     setHomeClicked(false);
@@ -40,7 +55,7 @@ function Home() {
                     setCollabClicked(false);
                     setProfileClicked(false);
                 }}>
-                    <ImSearch  className={`size-6 ${searchClicked === false ? 'text-white' : 'text-black'}`} />
+                    <IoIosSearch  className={`size-6 ${searchClicked === false ? 'text-white' : 'text-black'}`} />
                 </div>
                 <div className={`h-full w-1/4 flex justify-center rounded-3xl items-center ${collabClicked === false ? '' : 'bg-[#fff458]'}`} onClick={() => {
                     setHomeClicked(false);
@@ -56,10 +71,11 @@ function Home() {
                     setCollabClicked(false);
                     setProfileClicked(true);
                 }}>
-                    <FaUser className={`size-6 ${profileClicked === false ? 'text-white' : 'text-black'}`} />
+                    <FaRegUser className={`size-6 ${profileClicked === false ? 'text-white' : 'text-black'}`} />
                 </div>
             </div>
         </div>
+        
     )
 }
 
