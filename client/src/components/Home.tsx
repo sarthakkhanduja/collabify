@@ -37,7 +37,6 @@ function Home() {
                         <img className="size-14" src={plus} alt="Add Project" />
                         <p className="text-sm text-gray-200">New Collab</p>
                     </div>
-                    
                 </div>
             </div>
             <div className="h-[7%] p-2 w-[90%] absolute bottom-8 bg-gray-800 rounded-3xl z-10 flex flex-row justify-center opacity-70">
