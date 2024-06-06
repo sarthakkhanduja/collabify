@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
@@ -14,9 +15,25 @@ datasource db {
 }
 
 model User {
-  id                 Int     @id @default(autoincrement())
-  email              String  @unique
+  id                 Int           @id @default(autoincrement())
+  email              String        @unique
   name               String
   profilePictureLink String?
   role               String
+  creators           Creator[]
+  contributors       Contributor[]
+}
+
+model Creator {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id])
+  channelLink String
+  channelId   String
+}
+
+model Contributor {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
