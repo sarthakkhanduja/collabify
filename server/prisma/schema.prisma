@@ -20,6 +20,7 @@ model User {
   name               String
   profilePictureLink String?
   role               String
+  refreshToken       String
   creators           Creator[]
   contributors       Contributor[]
 }
@@ -28,8 +29,8 @@ model Creator {
   id          Int    @id @default(autoincrement())
   userId      Int
   user        User   @relation(fields: [userId], references: [id])
-  channelLink String
   channelId   String
+  channelName String
 }
 
 model Contributor {

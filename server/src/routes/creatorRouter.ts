@@ -11,36 +11,106 @@ const { OAuth2Client } = require("google-auth-library");
 
 const prisma = new PrismaClient();
 
-router.post("/", async (req: Request, res: Response, next: () => void) => {
-  res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5173");
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.header("Referrer-Policy", "no-referrer-when-downgrade");
-
-  const redirectUrl =
-    "http://localhost:3001/api/v1/creator/auth/google/callback";
-
-  // console.log("ID: ", process.env.GOOGLE_CLIENT_ID);
-  // console.log("Secret: ", process.env.GOOGLE_CLIENT_SECRET);
-
-  const oAuth2Client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    redirectUrl
-  );
-
-  const authorizeUrl = oAuth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope:
-      "https://www.googleapis.com/auth/userinfo.profile openid email https://www.googleapis.com/auth/youtube.readonly",
-    prompt: "consent",
+async function addUserToDB(
+  email: string,
+  name: string,
+  profilePictureLink: string,
+  role: string,
+  channelId: string,
+  channelName: string,
+  refreshToken: string
+) {
+  const userPresent = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
   });
+  console.log(userPresent);
 
-  console.log("Auth URL: ", authorizeUrl);
+  if (!userPresent) {
+    try {
+      const insertUser = await prisma.user.create({
+        data: {
+          email,
+          name,
+          profilePictureLink,
+          role,
+          refreshToken,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          profilePictureLink: true,
+          role: true,
+          refreshToken: true,
+        },
+      });
+      console.log("Added into User DB");
 
-  res.json({
-    url: authorizeUrl,
-  });
-});
+      // Finding the user ID from users table to add the same one in the creator table's foreign key column
+      const currentUserId = insertUser.id;
+      if (currentUserId === undefined) {
+        throw new Error("User ID is undefined after insertion.");
+      }
+
+      const insertCreator = await prisma.creator.create({
+        data: {
+          userId: currentUserId,
+          channelId,
+          channelName,
+        },
+        select: {
+          userId: true,
+          channelId: true,
+          channelName: true,
+        },
+      });
+
+      console.log("Added into both DBs");
+
+      return 200;
+    } catch (e) {
+      console.error(e);
+      return 410;
+    }
+  } else {
+    console.log("User already in DB");
+    return 300;
+  }
+}
+
+const redirectUrl = "http://localhost:3001/api/v1/creator/auth/google/callback";
+
+const oAuth2Client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  redirectUrl
+);
+
+router.post(
+  "/auth/google",
+  async (req: Request, res: Response, next: () => void) => {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5173");
+    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+    res.header("Referrer-Policy", "no-referrer-when-downgrade");
+
+    const authorizeURL = oAuth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope:
+        "https://www.googleapis.com/auth/userinfo.profile openid email https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload",
+      prompt: "consent",
+    });
+
+    console.log("Auth URL: ", authorizeURL);
+
+    // res.json({
+    //   URL: authorizeURL,
+    // });
+
+    res.redirect(authorizeURL);
+  }
+);
 
 router.get(
   "/auth/google/callback",
@@ -57,28 +127,14 @@ router.get(
 
     const authCode = req.query.code;
 
-    // Create the oAuth2.0 Client once again
-    const redirectUrl =
-      "http://localhost:3001/api/v1/creator/auth/google/callback";
-
-    const oAuth2Client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      redirectUrl
-    );
-
     // Exchange authCode for tokens
     const { tokens } = await oAuth2Client.getToken(authCode);
-    console.log(tokens);
 
     // Set access to make requests to API
     await oAuth2Client.setCredentials(tokens);
 
     const userCreds = oAuth2Client.credentials;
-
-    console.log("#############");
     console.log(userCreds);
-    console.log("#############");
 
     // Till here the whole Google Authentication Flow was done
     // Now we will use these tokens to access the APIs
@@ -101,9 +157,9 @@ router.get(
     const profilePictureLink = userProfile.data.photos?.[0].url;
 
     console.log("User Profile:", userProfile);
-    console.log("Name: ", name);
-    console.log("Email: ", email);
-    console.log("Profile Picture: ", profilePictureLink);
+    // console.log("Name: ", name);
+    // console.log("Email: ", email);
+    // console.log("Profile Picture: ", profilePictureLink);
 
     // Now we will do YouTube API
     // Create YouTube Data API client
@@ -132,47 +188,39 @@ router.get(
       console.log("Channel Name: ", channelName);
       console.log("Channel ID: ", channelId);
 
-      // Check if the DB already has this user
-      const userPresent = await prisma.user.findUnique({
-        where: {
-          email: email,
-        },
-      });
-
-      console.log(userPresent);
-
-      if (!userPresent) {
-        const insertUser = await prisma.user.create({
-          data: {
-            email,
-            name,
-            profilePictureLink,
-          },
-          select: {
-            email: true,
-            name,
-            profilePictureLink,
-          },
+      // Add this user to the DB, if not already existing
+      let userInDB = await addUserToDB(
+        email,
+        name,
+        profilePictureLink,
+        "Creator",
+        channelId,
+        channelName,
+        userCreds.refresh_token
+      );
+      if (userInDB === 300) {
+        console.log("User already exists in the database");
+        return res.status(300).json({
+          message: "User already exists in the database",
+          access_token: userCreds.access_token,
+        });
+      } else if (userInDB === 410) {
+        console.log("Error while adding user to DB");
+        return res.status(410).json({
+          message: "There was an error adding the user to the DB",
+        });
+      } else if (userInDB === 200) {
+        console.log("Done");
+        return res.status(200).json({
+          message: "User has been successfully added to the DB",
+          access_token: userCreds.access_token,
         });
       }
-      return res.status(200).json({
-        message: "tokens acquired",
-        access_token: userCreds.access_token,
-        name: name,
-        email: email,
-        profilePicture: profilePictureLink,
-        channelName,
-        channelId,
-      });
     }
 
     return res.status(210).json({
       message:
         "No YouTube Channel data was found. This application is specifically for YouTube creators. If you want to get started on creating a YouTube channel, you can follow an online guide.",
-      access_token: userCreds.access_token,
-      name: name,
-      email: email,
-      profilePicture: profilePictureLink,
     });
   }
 );
